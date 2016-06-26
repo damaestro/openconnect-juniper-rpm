@@ -1,0 +1,12 @@
+diff -up openconnect-7.06/library.c.orig openconnect-7.06/library.c
+--- openconnect-7.06/library.c.orig	2016-06-13 21:15:04.267586143 -0600
++++ openconnect-7.06/library.c	2016-06-13 21:15:14.923581399 -0600
+@@ -94,7 +94,7 @@ struct openconnect_info *openconnect_vpn
+ #ifdef ENABLE_NLS
+ 	bindtextdomain("openconnect", LOCALEDIR);
+ #endif
+-	openconnect_set_protocol(vpninfo, "anyconnect");
++	openconnect_set_protocol(vpninfo, "nc");
+ 	return vpninfo;
+ 
+ err:
