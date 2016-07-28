@@ -79,11 +79,7 @@ This package provides the core HTTP and authentication support from
 the OpenConnect VPN client, to be used by GUI authentication dialogs
 for NetworkManager etc.
 
-%include %SOURCE3
 %prep
-%if 0%{?gitcount} == 0
-%gpg_verify
-%endif
 
 %setup -q -n openconnect-%{version}%{?gitsuffix}
 %patch0 -p1 -b .juniper_default
