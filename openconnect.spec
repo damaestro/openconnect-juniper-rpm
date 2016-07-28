@@ -35,7 +35,7 @@ Source1:	ftp://ftp.infradead.org/pub/openconnect/openconnect-%{version}%{?gitsuf
 %endif
 Source2:	gpgkey-BE07D9FD54809AB2C4B0FF5F63762CDA67E2F359.asc
 Source3:	macros.gpg
-Patch1:         openconnect-7.07_library.c_juniper_hack.patch
+Patch0:         openconnect-7.07_library.c_juniper_hack.patch
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -85,8 +85,8 @@ for NetworkManager etc.
 %gpg_verify
 %endif
 
-%patch1 -p1 -b .juniper_default
 %setup -q -n openconnect-%{version}%{?gitsuffix}
+%patch0 -p1 -b .juniper_default
 
 %build
 %configure	--with-vpnc-script=/etc/vpnc/vpnc-script \
