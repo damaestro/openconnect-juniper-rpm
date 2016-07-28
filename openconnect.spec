@@ -19,23 +19,29 @@
 %define use_tokens 1
 %endif
 
+%{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
+
 Name:		openconnect
-Version:	7.06
-Release:	4%{?relsuffix}%{?dist}
+Version:	7.07
+Release:	3%{?relsuffix}%{?dist}
 Summary:	Open client for Cisco AnyConnect VPN
 
 Group:		Applications/Internet
 License:	LGPLv2+
 URL:		http://www.infradead.org/openconnect.html
 Source0:	ftp://ftp.infradead.org/pub/openconnect/openconnect-%{version}%{?gitsuffix}.tar.gz
-Patch1:		openconnect-7.05-override-default-prio-string.patch
-Patch2:		openconnect-7.05-ensure-dtls-ciphers-match-the-allowed.patch
-Patch3:		openconnect-7.06_library.c_juniper_hack.patch
+%if 0%{?gitcount} == 0
+Source1:	ftp://ftp.infradead.org/pub/openconnect/openconnect-%{version}%{?gitsuffix}.tar.gz.asc
+%endif
+Source2:	gpgkey-BE07D9FD54809AB2C4B0FF5F63762CDA67E2F359.asc
+Source3:	macros.gpg
+Patch1:         openconnect-7.07_library.c_juniper_hack.patch
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:	pkgconfig(openssl) pkgconfig(libxml-2.0)
+BuildRequires:	pkgconfig(libxml-2.0) pkgconfig(libpcsclite) krb5-devel gnupg2
 BuildRequires:	autoconf automake libtool python gettext pkgconfig(liblz4)
+BuildRequires:	pkgconfig(uid_wrapper) pkgconfig(socket_wrapper)
 %if 0%{?fedora} || 0%{?rhel} >= 7
 Obsoletes:	openconnect-lib-compat%{?_isa} < %{version}-%{release}
 Requires:	vpnc-script
@@ -44,13 +50,15 @@ Requires:	vpnc
 %endif
 
 %if %{use_gnutls}
-BuildRequires:	pkgconfig(gnutls) trousers-devel pkgconfig(libpcsclite)
+BuildRequires:	pkgconfig(gnutls) trousers-devel
+%else
+BuildRequires:	pkgconfig(openssl) pkgconfig(libp11) pkgconfig(p11-kit-1)
 %endif
 %if %{use_libproxy}
 BuildRequires:	pkgconfig(libproxy-1.0)
 %endif
 %if %{use_tokens}
-BuildRequires:  pkgconfig(liboath) pkgconfig(stoken)
+BuildRequires:  pkgconfig(stoken) pkgconfig(libpskc)
 %endif
 
 %description
@@ -71,29 +79,34 @@ This package provides the core HTTP and authentication support from
 the OpenConnect VPN client, to be used by GUI authentication dialogs
 for NetworkManager etc.
 
+%include %SOURCE3
 %prep
+%if 0%{?gitcount} == 0
+%gpg_verify
+%endif
+
+%patch1 -p1 -b .juniper_default
 %setup -q -n openconnect-%{version}%{?gitsuffix}
 
-%patch1 -p1 -b .prio
-%patch2 -p1 -b .ciphers
-%patch3 -p1 -b .juniper_default
-
 %build
-autoreconf -fvi
 %configure	--with-vpnc-script=/etc/vpnc/vpnc-script \
 		--with-default-gnutls-priority="@SYSTEM" \
 %if !%{use_gnutls}
 		--with-openssl --without-openssl-version-check \
 %endif
-		--htmldir=%{_docdir}/%{name}
+		--htmldir=%{_pkgdocdir}
 make %{?_smp_mflags} V=1
 
 
 %install
 rm -rf $RPM_BUILD_ROOT
 %make_install
+mkdir -p $RPM_BUILD_ROOT/%{_pkgdocdir}
 rm -f $RPM_BUILD_ROOT/%{_libdir}/libopenconnect.la
 %find_lang %{name}
+
+%check
+make check
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -108,7 +121,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_sbindir}/openconnect
 %{_mandir}/man8/*
 %doc TODO COPYING.LGPL
-%doc %{_docdir}/%{name}
+%doc %{_pkgdocdir}
 
 %files devel
 %defattr(-,root,root,-)
@@ -117,8 +130,24 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/pkgconfig/openconnect.pc
 
 %changelog
-* Mon Jun 13 2016 Jonathan Steffan <jsteffan@fedoraproject.org> 7.06-4
+* Wed Jul 27 2016 Jonathan Steffan <jsteffan@fedoraproject.org> 7.07-3
 - Force Juniper mode by default patch
+
+* Mon Jul 11 2016 David Woodhouse <David.Woodhouse@intel.com> - 7.07-2
+- Enable Kerberos and PSKC support
+
+* Mon Jul 11 2016 David Woodhouse <David.Woodhouse@intel.com> - 7.07-1
+- Update to 7.07 release (#1268198)
+- Enable PKCS#11 and Yubikey OATH support for OpenSSL (i.e. EL6) build
+
+* Tue Mar 22 2016 David Woodhouse <David.Woodhouse@intel.com> - 7.06-7
+- Switch to using GPGv2 for signature check
+
+* Mon Mar 21 2016 David Woodhouse <David.Woodhouse@intel.com> - 7.06-6
+- Check GPG signature as part of build
+
+* Tue Feb 02 2016 Dennis Gilmore <dennis@ausil.us> - 7.06-4
+- add upstream patch to fix ipv6 only setups
 
 * Thu Oct 29 2015 Peter Robinson <pbrobinson@fedoraproject.org> 7.06-3
 - Fix FTBFS by including packaged docs
