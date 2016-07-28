@@ -9,7 +9,7 @@
 # RHEL6 still has ancient GnuTLS
 %define use_gnutls 0%{?fedora} || 0%{?rhel} >= 7
 
-# RHEL5 has no libproxy, and no %make_install macro
+# RHEL5 has no libproxy, and no make_install macro
 %if 0%{?rhel} && 0%{?rhel} <= 5
 %define use_libproxy 0
 %define make_install %{__make} install DESTDIR=%{?buildroot}
@@ -35,7 +35,7 @@ Source1:	ftp://ftp.infradead.org/pub/openconnect/openconnect-%{version}%{?gitsuf
 %endif
 Source2:	gpgkey-BE07D9FD54809AB2C4B0FF5F63762CDA67E2F359.asc
 Source3:	macros.gpg
-Patch0:         openconnect-7.07_library.c_juniper_hack.patch
+Patch0:		openconnect-7.07_library.c_juniper_hack.patch
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -58,7 +58,7 @@ BuildRequires:	pkgconfig(openssl) pkgconfig(libp11) pkgconfig(p11-kit-1)
 BuildRequires:	pkgconfig(libproxy-1.0)
 %endif
 %if %{use_tokens}
-BuildRequires:  pkgconfig(stoken) pkgconfig(libpskc)
+BuildRequires:	pkgconfig(stoken) pkgconfig(libpskc)
 %endif
 
 %description
